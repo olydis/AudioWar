@@ -1,0 +1,15 @@
+node_modules/
+.tscache/
+npm-debug.log
+
+log.txt
+
+*.tmp.txt
+*.js
+!Gruntfile.js
+
+*.js.map
+
+log.txt*
+
+build/client/textures/figures_user/*
