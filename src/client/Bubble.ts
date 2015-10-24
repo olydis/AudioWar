@@ -1,41 +1,45 @@
 /// <reference path="../shared/include.ts" />
-/// <reference path="MusicalNote.ts" />
+/// <reference path="BubbleSettings.ts" />
 
 class Bubble
 {
-    // readonly
-    public radius: number;
-    public baseFrequency: number;
-    public actualFrequency: number;
-    
     // dynamic
     public location: Vector2D;
+    public velocity: Vector2D;
     public life: number;
     
-    public constructor(
-        public note: MusicalNote,
-        worldSize: Vector2D)
+    public get radius(): number
     {
-        this.baseFrequency = 220 * Math.pow(Math.pow(2, 1/12), note.note); // 220..440
-        this.actualFrequency = Math.pow(2, note.octave) * this.baseFrequency;
-        this.radius = 20000 / this.actualFrequency;
-        
-        this.life = note.duration;
+        return 10 + this.life / 20;
+    }
+    
+    public constructor(
+        public settings: BubbleSettings,
+        worldSize: Vector2D,
+        target: Vector2D)
+    {
+        this.life = settings.life;
         
         this.location = {
-            x: Math.random() * (worldSize.x - 2 * this.radius) - worldSize.x / 2 + this.radius,
-            y: worldSize.y / 2 + this.radius
+            x: settings.frequency * worldSize.x,
+            y: 0
         };
+        var dir: Vector2D = { x: target.x - this.location.x, y: target.y - this.location.y };
+        var len = Math.sqrt(dir.x*dir.x + dir.y*dir.y);
+        dir.x /= len * 10;
+        dir.y /= len * 10;
+        this.velocity = dir;
     }
     
-    public move(step: number): void
+    public move(elapsedMS: number): void
     {
-        this.location.y -= step;
+        this.location.x += this.velocity.x * elapsedMS;
+        this.location.y += this.velocity.y * elapsedMS;
     }
     
-    public hit(elapsedMS: number): void
+    public hit(damage: number): void
     {
-        this.life -= elapsedMS;
+        this.life -= damage;
     }
 }
 

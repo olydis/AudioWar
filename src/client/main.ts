@@ -125,8 +125,13 @@ function main(environment: Environment)
     }, 10);
 }
 
+// index to frequency: x => x * 22 + 440
+var delayMS = 10;
 function runGame(environment: Environment): void
 {
+    // resources
+    var imgPlanet = document.getElementById("imgPlanet");
+    
     var worldSize = { x: 1000, y: -1 };
     
     var wnd: JQuery = $(window);
@@ -138,17 +143,26 @@ function runGame(environment: Environment): void
     var canvas = new SmartCanvas(body);
     
     // game state
-    var bubbleQ: { note: MusicalNote; timeStamp: number }[] = [];
+    var ammo: { pos: Vector2D, vel: Vector2D }[] = [];
+    
+    var bubbleQ: { settings: BubbleSettings; timeStamp: number }[] = [];
     // HELPERS
     {
         var currentTime = 0;
         var addTone = (symbol: string, duration: number = 1, progress: boolean = true) =>
         {
-            duration *= 500;
-            bubbleQ.push({ note: { note: tones.indexOf(symbol), octave: 0, duration: duration / 2 }, timeStamp: currentTime });
+            duration *= 300;
+            bubbleQ.push({ settings: { frequency: tones.indexOf(symbol) / 12, life: duration }, timeStamp: currentTime });
             if (progress)
                 currentTime += duration;
         };
+        // bubbleQ.push({ settings: { frequency: 0, life: 1000 }, timeStamp: currentTime });
+        // bubbleQ.push({ settings: { frequency: 1, life: 1000 }, timeStamp: currentTime });
+        
+        // addTone("C");
+        // addTone("E");
+        // addTone("G");
+        
         addTone("C");
         addTone("D");
         addTone("E");
@@ -180,10 +194,16 @@ function runGame(environment: Environment): void
     
     var bubbles: Bubble[] = [];
     
-    var delayMS = 10;
     var gameStart = Date.now();
+    var lastGameTime: number = null;
     setInterval(() =>
     {
+        var gameTime = Date.now() - gameStart;
+        if (!lastGameTime)
+            lastGameTime = gameTime;
+        var gameTimeDiff = gameTime - lastGameTime;
+        lastGameTime = gameTime;        
+        
         // resize handling
         var width = wnd.width();
         var height = wnd.height();
@@ -195,33 +215,46 @@ function runGame(environment: Environment): void
             worldSize.y = worldSize.x * canvasSize.y / canvasSize.x;
         }
         
+        var laserCenter: Vector2D = { x: worldSize.x / 2, y: 2 * worldSize.y };
+        
         // audio logic
         var frequencies = environment.getInput();
-        var isActive = (bubble: Bubble) =>
-        {
-            var freq = 523.2511306011974 / 2 * Math.pow(Math.pow(2, 1/12), bubble.note.note); // 220..440
-            var relTolerance = 1.06;
-            for (var i = 0; i < 4; i++, freq *= 2)
-                if (frequencies.some(f => freq / relTolerance <= f && f <= freq * relTolerance))
-                    return true;
-            return false;
-        };
             
         // game logic
-        var gameTime = Date.now() - gameStart;
-        if (bubbleQ.length != 0 && bubbleQ[0].timeStamp < gameTime)
-            bubbles.push(new Bubble(bubbleQ.shift().note, worldSize));
-        bubbles.forEach((x, i) => 
-        {
-            x.move(1);
-            if (i == 0 && isActive(x))
-                x.hit(delayMS);
+        bubbles.forEach(a => { 
+            a.location.x += a.velocity.x * gameTimeDiff;
+            a.location.y += a.velocity.y * gameTimeDiff;
         });
+        ammo.forEach(a => { 
+            a.pos.x += a.vel.x * gameTimeDiff;
+            a.pos.y += a.vel.y * gameTimeDiff;
+        });
+        ammo = ammo.filter(a => a.pos.y > -worldSize.y);
+        
+        if (bubbleQ.length != 0 && bubbleQ[0].timeStamp < gameTime)
+            bubbles.push(new Bubble(bubbleQ.shift().settings, worldSize, laserCenter));
+            
+        bubbles.forEach(x => 
+        {
+            var bRad = x.radius;
+            ammo.forEach(a => 
+            {
+                var delta = { x: a.pos.x - x.location.x, y: a.pos.y - x.location.y };
+                var distSq = delta.x*delta.x + delta.y*delta.y;
+                var distMax = 30 + bRad;
+                if (distSq < distMax * distMax)
+                {
+                    a.pos.y = -worldSize.y;
+                    x.hit(2*delayMS);
+                }
+            });
+        });
+        
         bubbles = bubbles.filter(x => x.life > 0);
         
         // rendering
-        var context = canvas.context;
         canvas.resetCamera();
+        var context = canvas.context;
         context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
         canvas.setCamera(worldSize.x);
@@ -233,11 +266,51 @@ function runGame(environment: Environment): void
             context.closePath();
             context.stroke();
             
-            context.fillStyle = "white";
-            context.textAlign = "center";
-            context.textBaseline = "middle";
-            context.font = (b.radius | 0) + "px serif";
-            context.fillText(tones[b.note.note], b.location.x, b.location.y);
+            // context.fillStyle = "white";
+            // context.textAlign = "center";
+            // context.textBaseline = "middle";
+            // context.font = (b.fre | 0) + "px serif";
+            // context.fillText(tones[b.note.note], b.location.x, b.location.y);
         });
+        context.lineCap = "round";
+        frequencies.forEach(f => {
+            var laserTarget: Vector2D = { x: f * worldSize.x, y: 0 };
+            
+            var dir: Vector2D = { x: laserTarget.x - laserCenter.x, y: laserTarget.y - laserCenter.y };
+            var len = Math.sqrt(dir.x*dir.x + dir.y*dir.y);
+            dir.x /= len;
+            dir.y /= len;
+            dir.x += (Math.random() * 2 - 1) / 30;
+            var newAmmo = { pos: { x: laserCenter.x + (Math.random() * 2 - 1) * 5, y: laserCenter.y + (Math.random() * 2 - 1) * 5 }, vel: dir };
+            // get out of ground
+            var t = (worldSize.y - newAmmo.pos.y) / dir.y;
+            newAmmo.pos.x += dir.x * t;
+            newAmmo.pos.y += dir.y * t;
+            ammo.push(newAmmo);
+            
+            context.lineWidth = 1;
+            context.strokeStyle = "red";
+            context.beginPath();
+            context.moveTo(laserTarget.x, laserTarget.y);
+            context.lineTo(laserCenter.x, laserCenter.y);
+            context.closePath();
+            context.stroke();
+        });
+        
+        context.globalAlpha = 0.6;
+        context.globalCompositeOperation = "lighter";
+        
+        ammo.forEach(a => {
+            context.lineWidth = 20;
+            context.strokeStyle = "#882200";
+            context.beginPath();
+            context.moveTo(a.pos.x, a.pos.y);
+            context.lineTo(a.pos.x - 50 * a.vel.x, a.pos.y - 50 * a.vel.y);
+            context.stroke();
+            context.closePath();
+        });
+        
+        context.globalAlpha = 1;
+        context.globalCompositeOperation = "source-over";
     }, delayMS);
 }

@@ -49,7 +49,7 @@ export class SmartCanvas
     {
         var context = this.context;
         context.setTransform(1, 0, 0, 1, 0, 0);
-        context.translate(this._currentDimensions.x / 2, this._currentDimensions.y / 2);
+        context.translate(0, 0);
         context.scale(
             this._currentDimensions.x / worldWidth, 
             this._currentDimensions.x / worldWidth);

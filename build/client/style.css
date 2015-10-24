@@ -17,46 +17,8 @@ body
     font-family: monospace;
     color: white;
 }
-#inputVideo
+.offscreen
 {
-    visibility: hidden;
     display: none;
-}
-
-.modeWrapper
-{
-    display: inline-block;
-    width: 0px;
-    position: relative;
-}
-.modeCaption
-{
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    color: white;
-    background: rgba(0, 0, 0, 0.7);
-    font-family: sans-serif;
-    font-size: 30px;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 30px;
-}
-.detectorPanel
-{
-    width: 100%;
-    box-sizing: border-box;
-    display: inline-block;
-    font-size: 20px;
-    color: white;
-    font-family: sans-serif;
-    padding: 30px;
-    border: 5px solid #111;
-    margin: 0;
-    border-radius: 30px;
-}
-
-td
-{
-    text-align: left;
+    visibility: hidden;
 }

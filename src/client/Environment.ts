@@ -1,5 +1,12 @@
 /// <reference path="../shared/include.ts" />
 
+function saturate(x: number): number
+{
+    if (x < 0) return 0;
+    if (x > 1) return 1;
+    return x;
+}
+
 export class Environment
 {
 	private freqByteData: Uint8Array;
@@ -19,7 +26,7 @@ export class Environment
     {
         this.analyserNode.getByteFrequencyData(this.freqByteData);
         var data: number[] = [];
-        for (var i = 20; i < 120; i++)
+        for (var i = 24; i < 120; i++)
             data.push(this.freqByteData[i]);
         
         var values = data.slice().sort((a,b) => a - b);
@@ -32,12 +39,13 @@ export class Environment
         { 
             if (i != 0 && 
                 i != data.length - 1 && 
-                x > 90 && 
+                x > 70 && 
                 x > data[i - 1] && 
                 x > data[i + 1]) 
                     activeIndices.push(i); 
         });
         
-        return activeIndices.map(x => x * 22 + 440);
+        return [0,0.5,1];
+        return activeIndices.map(x => saturate(x / 96 * 2.5 - 0.5));
     }
 }
