@@ -126,11 +126,13 @@ function main(environment: Environment)
 }
 
 // index to frequency: x => x * 22 + 440
-var delayMS = 10;
+var delayMS = 20;
 function runGame(environment: Environment): void
 {
     // resources
-    var imgPlanet = document.getElementById("imgPlanet");
+    var imgPlanet = <HTMLImageElement>document.getElementById("imgPlanet");
+    var imgAsteroid1 = <HTMLImageElement>document.getElementById("imgAsteroid1");
+    var imgAsteroid2 = <HTMLImageElement>document.getElementById("imgAsteroid2");
     
     var worldSize = { x: 1000, y: -1 };
     
@@ -215,7 +217,7 @@ function runGame(environment: Environment): void
             worldSize.y = worldSize.x * canvasSize.y / canvasSize.x;
         }
         
-        var laserCenter: Vector2D = { x: worldSize.x / 2, y: 2 * worldSize.y };
+        var laserCenter: Vector2D = { x: worldSize.x / 2, y: 3 * worldSize.y };
         
         // audio logic
         var frequencies = environment.getInput();
@@ -259,12 +261,15 @@ function runGame(environment: Environment): void
 
         canvas.setCamera(worldSize.x);
         bubbles.forEach(b => {
-            context.lineWidth = b.life / 100;
-            context.strokeStyle = "white";
-            context.beginPath();
-            context.arc(b.location.x, b.location.y, b.radius, 0, Math.PI * 2);
-            context.closePath();
-            context.stroke();
+            
+            context.drawImage(b.seed % 2 == 0 ? imgAsteroid1 : imgAsteroid2, b.location.x, b.location.y, b.radius*2, b.radius*2, 256, 256);
+            
+            // context.lineWidth = b.life / 100;
+            // context.strokeStyle = "white";
+            // context.beginPath();
+            // context.arc(b.location.x, b.location.y, b.radius, 0, Math.PI * 2);
+            // context.closePath();
+            // context.stroke();
             
             // context.fillStyle = "white";
             // context.textAlign = "center";
@@ -280,7 +285,7 @@ function runGame(environment: Environment): void
             var len = Math.sqrt(dir.x*dir.x + dir.y*dir.y);
             dir.x /= len;
             dir.y /= len;
-            dir.x += (Math.random() * 2 - 1) / 30;
+            dir.x += (Math.random() * 2 - 1) / 50;
             var newAmmo = { pos: { x: laserCenter.x + (Math.random() * 2 - 1) * 5, y: laserCenter.y + (Math.random() * 2 - 1) * 5 }, vel: dir };
             // get out of ground
             var t = (worldSize.y - newAmmo.pos.y) / dir.y;
@@ -305,12 +310,18 @@ function runGame(environment: Environment): void
             context.strokeStyle = "#882200";
             context.beginPath();
             context.moveTo(a.pos.x, a.pos.y);
-            context.lineTo(a.pos.x - 50 * a.vel.x, a.pos.y - 50 * a.vel.y);
+            context.lineTo(a.pos.x - 30 * a.vel.x, a.pos.y - 30 * a.vel.y);
             context.stroke();
             context.closePath();
         });
         
         context.globalAlpha = 1;
         context.globalCompositeOperation = "source-over";
+        
+        var planetRadius = worldSize.x;
+        context.translate(worldSize.x / 2, worldSize.y + planetRadius * 0.88 * 0.7);
+        context.scale(1, 0.7);
+        context.rotate(gameTime / 90000);
+        context.drawImage(imgPlanet, -planetRadius, -planetRadius, planetRadius * 2, planetRadius * 2);
     }, delayMS);
 }

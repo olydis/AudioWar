@@ -7,6 +7,7 @@ class Bubble
     public location: Vector2D;
     public velocity: Vector2D;
     public life: number;
+    public seed: number;
     
     public get radius(): number
     {
@@ -18,6 +19,8 @@ class Bubble
         worldSize: Vector2D,
         target: Vector2D)
     {
+        this.seed = (Math.random() * 1000) | 0;
+        
         this.life = settings.life;
         
         this.location = {
