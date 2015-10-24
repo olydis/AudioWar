@@ -262,7 +262,13 @@ function runGame(environment: Environment): void
         canvas.setCamera(worldSize.x);
         bubbles.forEach(b => {
             
-            context.drawImage(b.seed % 2 == 0 ? imgAsteroid1 : imgAsteroid2, b.location.x, b.location.y, b.radius*2, b.radius*2, 256, 256);
+            context.save();
+            context.translate(b.location.x, b.location.y);
+            context.scale(b.radius / 256, b.radius / 256);
+            context.rotate(b.seed + gameTime / 10000 * ((b.seed % 5) - 2));
+            context.drawImage(b.seed % 2 == 0 ? imgAsteroid1 : imgAsteroid2, -256, -256, 512, 512);
+            
+            context.restore();
             
             // context.lineWidth = b.life / 100;
             // context.strokeStyle = "white";

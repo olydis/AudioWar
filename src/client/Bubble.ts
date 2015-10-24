@@ -6,6 +6,7 @@ class Bubble
     // dynamic
     public location: Vector2D;
     public velocity: Vector2D;
+    public initialLife: number;
     public life: number;
     public seed: number;
     
@@ -21,7 +22,7 @@ class Bubble
     {
         this.seed = (Math.random() * 1000) | 0;
         
-        this.life = settings.life;
+        this.initialLife = this.life = settings.life;
         
         this.location = {
             x: settings.frequency * worldSize.x,
