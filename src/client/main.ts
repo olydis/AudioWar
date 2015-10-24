@@ -260,15 +260,22 @@ function runGame(environment: Environment): void
         context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
         canvas.setCamera(worldSize.x);
-        bubbles.forEach(b => {
+        for (var i = 0; i < bubbles.length; ++i)
+        {
+            var b = bubbles[bubbles.length - i - 1];
+            var radius = b.radius;
             
             context.save();
             context.translate(b.location.x, b.location.y);
-            context.scale(b.radius / 256, b.radius / 256);
+            context.scale(radius / 256, radius / 256);
             context.rotate(b.seed + gameTime / 10000 * ((b.seed % 5) - 2));
             context.drawImage(b.seed % 2 == 0 ? imgAsteroid1 : imgAsteroid2, -256, -256, 512, 512);
             
             context.restore();
+            
+            context.fillStyle = "white";
+            var barSize = radius * b.life / b.initialLife;
+            context.fillRect(b.location.x - barSize, b.location.y - radius - 5, barSize * 2, 3);
             
             // context.lineWidth = b.life / 100;
             // context.strokeStyle = "white";
@@ -282,7 +289,8 @@ function runGame(environment: Environment): void
             // context.textBaseline = "middle";
             // context.font = (b.fre | 0) + "px serif";
             // context.fillText(tones[b.note.note], b.location.x, b.location.y);
-        });
+        }
+        
         context.lineCap = "round";
         frequencies.forEach(f => {
             var laserTarget: Vector2D = { x: f * worldSize.x, y: 0 };

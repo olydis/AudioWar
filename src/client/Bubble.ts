@@ -12,7 +12,7 @@ class Bubble
     
     public get radius(): number
     {
-        return 10 + this.life / 20;
+        return 10 + this.initialLife / 20;
     }
     
     public constructor(
