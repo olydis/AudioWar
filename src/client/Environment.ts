@@ -10,13 +10,7 @@ function saturate(x: number): number
 export class Environment
 {
 	private freqByteData: Uint8Array;
-	
-    public playSound(id: string): void
-    {
-        var audio = <HTMLAudioElement>$("#" + id)[0];
-        audio.play();
-    }
-    
+	    
     public constructor(private analyserNode: AnalyserNode)
     { 
         this.freqByteData = new Uint8Array(analyserNode.frequencyBinCount);
@@ -46,6 +40,6 @@ export class Environment
         });
         
        // return [0,0.5,1];
-        return activeIndices.map(x => saturate(x / 96 * 2.5 - 0.5));
+        return activeIndices.map(x => Math.pow(saturate(x / 96 * 2.2 - 0.5), 0.8));
     }
 }

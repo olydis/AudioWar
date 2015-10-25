@@ -6,6 +6,9 @@
 /// <reference path="../decls/webaudioapi/waa.d.ts" />
 /// <reference path="./GameMap.ts" />
 
+
+var tones = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "+C"];
+
 import $ = require("jquery");
 
 import EnvironmentTS = require("Environment");
@@ -17,8 +20,14 @@ type SmartCanvas = SmartCanvasTS.SmartCanvas;
 var SmartCanvas = SmartCanvasTS.SmartCanvas;
 
 import Bubble = require("Bubble");
-     
-var tones = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+import GameMaps = require("GameMaps");
+            
+            
+function playSound(id: string): void
+{
+    var audio = <HTMLAudioElement>$("#" + id)[0];
+    audio.play();
+}
             
 document.body.requestFullscreen = 
     document.body.requestFullscreen || 
@@ -61,23 +70,37 @@ function createEnvironment(callback: (param: Environment) => void) {
 }
 
 var globalEnvironment: Environment;
+var maps: GameMap[];
 var selectedMap: GameMap;
 
 function loadStartMenu() {
     $("#placeholder").html($("#start-menu").html());
 
-    $("#btn-start-entchen").click(() =>
-    {
-        selectedMap = {name: "Entchen"};
+    $("#lbl-heading").click(() => { document.body.requestFullscreen(); });
 
-        if (!globalEnvironment) {
-            createEnvironment((env: Environment) => {
-                globalEnvironment = env;
-                main(globalEnvironment);
-            })
-        } else
-            main(globalEnvironment);
+    var startButtons = $("#btn-starts");
+    maps.forEach((map,i) => 
+    {
+        startButtons.append($("<h1>").css("font-size", "2em").append(
+            $("<span>")
+                .addClass("game-btn")
+                .attr("id", "btn-start-" + map.name)
+                .text((i+1) + ". " + map.name)
+                .click(() =>
+                {
+                    selectedMap = map;
+            
+                    if (!globalEnvironment) {
+                        createEnvironment((env: Environment) => {
+                            globalEnvironment = env;
+                            main(globalEnvironment);
+                        })
+                    } else
+                        main(globalEnvironment);
+                })));
     });
+    
+    $(".game-btn").mouseenter(() => playSound("sndClick"));
 }
 
 function loadGameOverMenu() {
@@ -90,6 +113,7 @@ function loadGameOverMenu() {
     $("#btn-retry").click(() => {
         main(globalEnvironment);
     });
+    $(".game-btn").mouseenter(() => playSound("sndClick"));
 }
 
 function loadWonGameMenu(score: number) {
@@ -119,10 +143,13 @@ function loadWonGameMenu(score: number) {
             );
         });
     });
+    $(".game-btn").mouseenter(() => playSound("sndClick"));
 }
 
 // INIT
 $(() => {
+    maps = GameMaps();
+    
     if (!navigator.getUserMedia) {
         window.alert("no mix detected");
     } else {
@@ -135,16 +162,16 @@ window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
     return false;
 }
 
-function toneFromFreq(freq: number): string
-{
-    var cFreq = 523.2511306011974 / 2;
-    freq /= cFreq;
-    var tone = Math.log(freq) / Math.log(2);
-    var oct = tone | 0;
-    tone -= oct;
-    tone = 12 * tone | 0;
-    return tones[tone];
-}
+// function toneFromFreq(freq: number): string
+// {
+//     var cFreq = 523.2511306011974 / 2;
+//     freq /= cFreq;
+//     var tone = Math.log(freq) / Math.log(2);
+//     var oct = tone | 0;
+//     tone -= oct;
+//     tone = 12 * tone | 0;
+//     return tones[tone];
+// }
 
 // CALLED WHEN READY
 function main(environment: Environment)
@@ -153,8 +180,6 @@ function main(environment: Environment)
 
     runGame(environment);
     return;
-
-    //body.click(() => { document.body.requestFullscreen(); });
     
     //var canvas = $("<canvas>");
     //canvas.appendTo(body);
@@ -172,24 +197,6 @@ function main(environment: Environment)
             .append(cell = $("<td>").text("-"));
         cells.push(cell);
     }
-    
-    setInterval(() => 
-    {
-        var data = environment.getInput();
-        data.forEach((x, i) => 
-        { 
-            /*var str = x.toString();
-            while (str.length < 4)
-                str = " " + str;
-            str += " ";
-            for (var xx = 0; xx < x; xx++)
-                str += "#";
-            cells[i].html(str.replace(" ", "&nbsp;"));*/
-            console.log(x);
-        });
-        //console.log(data.map(f => toneFromFreq(f)).join(", "));
-        body.text(data.map(f => toneFromFreq(f)).join(", "));
-    }, 10);
 }
 
 // index to frequency: x => x * 22 + 440
@@ -233,58 +240,30 @@ function runGame(environment: Environment): void
     // game state
     var score: number = 0;
 
-    var ammo: { pos: Vector2D; vel: Vector2D }[] = [];
-    
-    var bubbleQ: { settings: BubbleSettings; timeStamp: number }[] = [];
-    // HELPERS
+    var particles: { pos: Vector2D; vel: Vector2D; life: number }[] = [];
+    var explode = (pos: Vector2D, num: number) =>
     {
-        var currentTime = 0;
-        var addTone = (symbol: string, duration: number = 1, progress: boolean = true) =>
+        for (var i = 0; i < num; ++i)
         {
-            duration *= 300;
-            bubbleQ.push({ settings: { frequency: tones.indexOf(symbol) / 12, life: duration }, timeStamp: currentTime });
-            if (progress)
-                currentTime += duration;
-        };
-        // bubbleQ.push({ settings: { frequency: 0, life: 1000 }, timeStamp: currentTime });
-        // bubbleQ.push({ settings: { frequency: 1, life: 1000 }, timeStamp: currentTime });
-        
-        // addTone("C");
-        // addTone("E");
-        // addTone("G");
-        
-        addTone("C");
-        addTone("D");
-       /* addTone("E");
-        addTone("F");
-        addTone("G", 2);
-        addTone("G", 2);
-        addTone("A");
-        addTone("A");
-        addTone("A");
-        addTone("A");
-        addTone("G", 4);
-        addTone("A");
-        addTone("A");
-        addTone("A");
-        addTone("A");
-        addTone("G", 4);
-        addTone("F");
-        addTone("F");
-        addTone("F");
-        addTone("F");
-        addTone("E", 2);
-        addTone("E", 2);
-        addTone("D");
-        addTone("D");
-        addTone("D");
-        addTone("D");
-        addTone("C", 4);*/
-    }
+            var dir = Math.random() * Math.PI * 2;
+            var speed = Math.random();
+            particles.push({
+                pos: { x: pos.x + Math.sin(dir) * Math.random() * num, y: pos.y + Math.cos(dir) * Math.random() * num },
+                vel: { x: Math.sin(dir) * speed, y: Math.cos(dir) * speed },
+                life: 300
+            });
+        }
+    };
+    
+    var ammo: { pos: Vector2D; vel: Vector2D }[] = [];
+    var bubbleQ: { settings: BubbleSettings; timeStamp: number }[] = JSON.parse(JSON.stringify(selectedMap.queue));
     
     var bubbles: Bubble[] = [];
     var myHealth: number = 1000;
     var myInitialHealth: number = 1000;
+
+    var comboCounter: number = 1;
+    var comboHotness: number = 0;
 
     var gameStart = Date.now();
     var lastGameTime: number = null;
@@ -325,6 +304,7 @@ function runGame(environment: Environment): void
             a.location.y += a.velocity.y * gameTimeDiff;
 
             if (a.location.y + 80 > worldSize.y) {
+                explode(a.location, a.initialLife / 50);
                 myHealth = Math.max(0, myHealth - a.life / 10);
                 a.life = 0;
             }
@@ -335,10 +315,17 @@ function runGame(environment: Environment): void
         });
         ammo = ammo.filter(a => a.pos.y > -worldSize.y);
         
+        particles.forEach(a => { 
+            a.pos.x += a.vel.x * gameTimeDiff;
+            a.pos.y += a.vel.y * gameTimeDiff;
+            a.life -= gameTimeDiff;
+        });
+        particles = particles.filter(x => x.life > 0);
+        
         if (bubbleQ.length != 0 && bubbleQ[0].timeStamp < gameTime)
             bubbles.push(new Bubble(bubbleQ.shift().settings, worldSize, laserCenter));
             
-        bubbles.forEach(x => 
+        bubbles.forEach((x, i) => 
         {
             var bRad = x.radius;
             ammo.forEach(a => 
@@ -348,13 +335,27 @@ function runGame(environment: Environment): void
                 var distMax = 30 + bRad;
                 if (distSq < distMax * distMax)
                 {
+                    var shield = Math.min(i + 1, 2);
+                    
                     a.pos.y = -worldSize.y;
-                    x.hit(2*delayMS);
-                    score += 2*delayMS;
+                    x.hit(2*delayMS / shield);
+                    
+                    if (x.life <= 0)
+                    {
+                        explode(x.location, x.initialLife / 50);
+                        if (i == 0)
+                        {
+                            comboCounter++;
+                            comboHotness += 250;
+                        }
+                        else
+                            comboCounter = 1;
+                    }
+                    
+                    score += 2*delayMS * comboCounter;
                 }
             });
         });
-        
         bubbles = bubbles.filter(x => x.life > 0);
         
         // rendering
@@ -376,8 +377,9 @@ function runGame(environment: Environment): void
             
             context.restore();
             
-            context.fillStyle = "white";
-            var barSize = radius * b.life / b.initialLife;
+            var health = b.life / b.initialLife;
+            context.fillStyle = "rgb(255, " + (255 * health | 0) + "," + (255 * health | 0) + ")";
+            var barSize = radius * health;
             context.fillRect(b.location.x - barSize, b.location.y - radius - 5, barSize * 2, 3);
             
             // context.lineWidth = b.life / 100;
@@ -435,6 +437,15 @@ function runGame(environment: Environment): void
         context.globalAlpha = 1;
         context.globalCompositeOperation = "source-over";
         
+        context.fillStyle = "grey";
+        particles.forEach(a => {
+            context.beginPath();
+            context.arc(a.pos.x, a.pos.y, 3, 0, Math.PI * 2);
+            context.closePath();
+            context.fill();
+        });
+        
+        // PLANET
         var planetRadius = worldSize.x;
         context.save();
         context.translate(worldSize.x / 2, worldSize.y + planetRadius * 0.88 * 0.7);
@@ -443,15 +454,40 @@ function runGame(environment: Environment): void
         context.drawImage(imgPlanet, -planetRadius, -planetRadius, planetRadius * 2, planetRadius * 2);
         context.restore();
 
+        context.save();
+        context.font = "50px monospace";
+        context.shadowColor = "black";
+        context.fillStyle = "white";
+        context.shadowBlur = 5;
+        context.textAlign = "center";
+        var debugNotes: string[] = [];
+        frequencies.forEach(f => {
+            var note = tones[Math.round(Math.min(12, Math.max(0, f * 12)))];
+            debugNotes.push(note);
+        });
+        debugNotes = debugNotes.filter((x,i) => i == 0 || debugNotes[i-1] != x);
+        context.fillText(debugNotes.length == 0 ? "" : debugNotes.join(", "), worldSize.x / 2, worldSize.y - 45);
+        context.restore();
+
         // health
         context.fillStyle = "#008800";
         var barSize = myHealth / myInitialHealth;
         context.fillRect(worldSize.x / 4 + (worldSize.x * (1 - barSize)) / 4, worldSize.y - 20, barSize * worldSize.x / 2, 10);
     
-        // score
+        // score + factor
+        context.textBaseline = "middle";
+        
         context.fillStyle = "#ffd700";
         context.font = "25px monospace";
         context.fillText("" + score, worldSize.x - 130, 30);
+        
+        comboHotness = Math.min(Math.max(0, comboHotness - gameTimeDiff), 1000);
+        var redness = Math.max(0, Math.min((comboCounter - 4) / 10, 1));
+        context.shadowBlur = Math.min(comboHotness / 10, 7);
+        context.shadowColor = context.fillStyle = "rgb(255," + (255 - 255 * redness | 0) + "," + (255 - 255 * redness | 0) + ")";
+        context.font = (comboHotness / 60 + 25 | 0) + "px monospace";
+        context.fillText("x" + comboCounter, worldSize.x - 130, 65);
+        context.shadowBlur = 0;
 
         // highscore
         context.fillStyle = "white";
@@ -480,12 +516,13 @@ function runGame(environment: Environment): void
     }, delayMS);
 
     var gameOver = () => {
+        playSound("sndLost");
         clearInterval(gameInterval);
         loadGameOverMenu();
-    }
+    };
 
     var wonGame = (score: number) => {
         clearInterval(gameInterval);
         loadWonGameMenu(score);
-    }
+    };
 }
