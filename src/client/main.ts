@@ -23,10 +23,14 @@ import Bubble = require("Bubble");
 import GameMaps = require("GameMaps");
             
             
-function playSound(id: string): void
+function playSound(id: string, once: boolean = false): void
 {
-    var audio = <HTMLAudioElement>$("#" + id)[0];
-    audio.play();
+    var audio = $("#" + id);
+    if (audio.hasClass("done"))
+        return;
+    (<HTMLAudioElement>audio[0]).play();
+    if (once)
+        audio.addClass("done");
 }
             
 document.body.requestFullscreen = 
@@ -203,6 +207,8 @@ function main(environment: Environment)
 var delayMS = 20;
 function runGame(environment: Environment): void
 {
+    $("audio").removeClass("done");
+    
     // resources
     var imgPlanet = <HTMLImageElement>document.getElementById("imgPlanet");
     var imgAsteroid1 = <HTMLImageElement>document.getElementById("imgAsteroid1");
@@ -269,11 +275,11 @@ function runGame(environment: Environment): void
     var lastGameTime: number = null;
     var gameInterval = setInterval(() =>
     {
-        var gameTime = Date.now() - gameStart;
+        var gameTime = Date.now() - gameStart - 3000;
         if (!lastGameTime)
             lastGameTime = gameTime;
         var gameTimeDiff = gameTime - lastGameTime;
-        lastGameTime = gameTime;        
+        lastGameTime = gameTime;
         
         // resize handling
         var width = wnd.width();
@@ -468,6 +474,24 @@ function runGame(environment: Environment): void
         debugNotes = debugNotes.filter((x,i) => i == 0 || debugNotes[i-1] != x);
         context.fillText(debugNotes.length == 0 ? "" : debugNotes.join(", "), worldSize.x / 2, worldSize.y - 45);
         context.restore();
+
+        // countdown
+        if (gameTime < 0)
+        {
+            var sec = Math.ceil(-gameTime / 1000);
+            playSound("sndCnt" + sec, true);
+            var subsec = (gameTime / 1000) % 1 + 1;
+            context.save();
+            context.globalAlpha = 1 - subsec;
+            context.font = (subsec * 50 + 100 | 0) + "px monospace";
+            context.shadowColor = "white";
+            context.fillStyle = "white";
+            context.shadowBlur = 5;
+            context.textAlign = "center";
+            context.textBaseline = "middle";
+            context.fillText(sec.toString(), worldSize.x / 2, worldSize.y / 2);
+            context.restore();
+        }
 
         // health
         context.fillStyle = "#008800";
