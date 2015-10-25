@@ -43,6 +43,7 @@ body
 /* pulse animation */
 
 .pulse2 {
+    font-size:7em;
     -webkit-animation: pulse2 1s linear infinite;
     -moz-animation: pulse2 1s linear infinite;
     -ms-animation: pulse2 1s linear infinite;
@@ -68,11 +69,7 @@ body
 /* pulse animation end */
 
 
-@media only screen and (max-width: 910px) {
-  * {
-   
-  }
-}
+
 
 
 /* parallax stars begin */
@@ -164,3 +161,14 @@ html {
 
 
 /* paralax stars end */
+
+
+@media only screen and (max-width: 910px) {
+  .game-btn {
+   font-size: 1em;
+  }
+  
+  .pulse2 {
+    font-size: 4em;
+  }
+}
