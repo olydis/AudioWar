@@ -1,0 +1,3 @@
+interface GameMap {
+    name: string;
+}

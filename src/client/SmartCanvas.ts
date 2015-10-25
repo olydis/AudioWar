@@ -31,6 +31,7 @@ export class SmartCanvas
         this.canvas.height(dimensions.y);
         this.canvas.attr("width", dimensions.x);
         this.canvas.attr("height", dimensions.y);
+        this.canvas.css("z-index","0");
         this._context = null;
     }
     

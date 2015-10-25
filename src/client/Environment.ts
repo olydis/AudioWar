@@ -45,7 +45,7 @@ export class Environment
                     activeIndices.push(i); 
         });
         
-        return [0,0.5,1];
+       // return [0,0.5,1];
         return activeIndices.map(x => saturate(x / 96 * 2.5 - 0.5));
     }
 }
