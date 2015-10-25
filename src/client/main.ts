@@ -112,7 +112,7 @@ function loadWonGameMenu(score: number) {
                 return;
             }
 
-            $.get("/submit-score", {mapname: selectedMap.name, playername: name, score: 123},
+            $.get("/submit-score", {mapname: selectedMap.name, playername: name, score: score},
                 (result, status) => {
                     loadStartMenu();
                 }
@@ -217,6 +217,13 @@ function runGame(environment: Environment): void
     $("#btn-tomenu").click(() => {
         clearInterval(gameInterval);
         loadStartMenu();
+    });
+
+    var mapscores: Score[] = [];
+    $.get("highscore", {mapname: selectedMap.name}, (res, status) =>
+    {
+        res = JSON.parse(res);
+        mapscores = res;
     });
     
     var canvasSize: Vector2D = { x: 0, y: 0 };
@@ -445,6 +452,31 @@ function runGame(environment: Environment): void
         context.fillStyle = "#ffd700";
         context.font = "25px monospace";
         context.fillText("" + score, worldSize.x - 130, 30);
+
+        // highscore
+        context.fillStyle = "white";
+        context.font = "7px monospace";
+        
+        mapscores.push({playername: "You", mapname: "dummy-player", score: score});
+        mapscores.sort((a,b) => {return b.score - a.score;});
+
+        var scoreNum = Math.min(5, mapscores.length);
+        context.fillText("Highscore:", 10, -1*9 + worldSize.y / 2 - 50);
+        for (var i = 0; i < scoreNum; ++i) {
+            context.fillText((i+1) + ". " + mapscores[i].score + ": " + mapscores[i].playername, 10, i*9 + worldSize.y / 2 - 50);
+        }
+        var inScoreboard = -1;
+        for (var i = 0; i < mapscores.length; ++i)
+            if (mapscores[i].mapname == "dummy-player") inScoreboard = i;
+
+        if (inScoreboard >= scoreNum) {
+            if (inScoreboard > scoreNum)
+                context.fillText("...", 10, (scoreNum++)*9 + worldSize.y / 2 - 50);
+            context.fillText((inScoreboard+1) + ". " + score + ": You", 10, scoreNum*9 + worldSize.y / 2 - 50);
+        }
+
+        mapscores = mapscores.filter(x => x.mapname != "dummy-player");
+    
     }, delayMS);
 
     var gameOver = () => {

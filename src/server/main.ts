@@ -25,12 +25,6 @@ var server = require("http").createServer(app);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-interface Score {
-    mapname: string;
-    playername: string;
-    score: number;
-}
-
 var allscores: Score[] = [];
 
 app.get("/submit-score", (req, res) => {
@@ -46,7 +40,9 @@ app.get("/highscore", (req, res) => {
     var mapname = req.query.mapname;
     var mapscores: Score[] = allscores.filter((entry) => entry.score && entry.mapname == mapname);
     mapscores.sort((a,b) => {return (b.score-a.score);});
-    console.log(mapscores);
+
+    res.write(JSON.stringify(mapscores));
+    res.end();
 });
 
 app.use("/", express.static("build/client"));
