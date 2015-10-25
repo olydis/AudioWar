@@ -233,7 +233,7 @@ function runGame(environment: Environment): void
     // game state
     var score: number = 0;
 
-    var ammo: { pos: Vector2D, vel: Vector2D }[] = [];
+    var ammo: { pos: Vector2D; vel: Vector2D }[] = [];
     
     var bubbleQ: { settings: BubbleSettings; timeStamp: number }[] = [];
     // HELPERS
