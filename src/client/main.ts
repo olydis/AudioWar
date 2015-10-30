@@ -11,13 +11,8 @@ var tones = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "+
 
 import $ = require("jquery");
 
-import EnvironmentTS = require("Environment");
-type Environment = EnvironmentTS.Environment;
-var Environment = EnvironmentTS.Environment;
-
-import SmartCanvasTS = require("SmartCanvas");
-type SmartCanvas = SmartCanvasTS.SmartCanvas;
-var SmartCanvas = SmartCanvasTS.SmartCanvas;
+import { AudioAnalysis } from "AudioAnalysis";
+import { SmartCanvas } from "SmartCanvas";
 
 import Bubble = require("Bubble");
 import GameMaps = require("GameMaps");
@@ -44,43 +39,14 @@ navigator.getUserMedia =
     navigator.mozGetUserMedia || 
     navigator.msGetUserMedia;
 
-function createEnvironment(callback: (param: Environment) => void) {
-    navigator.getUserMedia({ video: false, audio: true }, 
-        stream => 
-        {
-            var AudioContext: AudioContextConstructor = window.AudioContext || (<any>window).webkitAudioContext;
-            var audioContext = new AudioContext();
-            
-            var inputPoint = audioContext.createGain();
-
-            var realAudioInput = audioContext.createMediaStreamSource(stream);
-            var audioInput = realAudioInput;
-            audioInput.connect(inputPoint);
-        
-            var analyserNode = audioContext.createAnalyser();
-            analyserNode.fftSize = 2048; // FFT resolution
-            analyserNode.minDecibels = -90;
-            analyserNode.maxDecibels = -10;
-            analyserNode.smoothingTimeConstant = 0.85;
-            inputPoint.connect( analyserNode );
-            
-            callback(new Environment(analyserNode));
-            //main();
-        }, 
-        error => 
-        {
-            window.alert("no mix detected");
-        });
-}
-
-var globalEnvironment: Environment;
+var audioAnalysis: AudioAnalysis;
 var maps: GameMap[];
 var selectedMap: GameMap;
 
 function loadStartMenu() {
     $("#placeholder").html($("#start-menu").html());
 
-    $("#lbl-heading").click(() => { document.body.requestFullscreen(); });
+    $("#lbl-heading").click(() => document.body.requestFullscreen());
 
     var startButtons = $("#btn-starts");
     maps.forEach((map,i) => 
@@ -94,13 +60,7 @@ function loadStartMenu() {
                 {
                     selectedMap = map;
             
-                    if (!globalEnvironment) {
-                        createEnvironment((env: Environment) => {
-                            globalEnvironment = env;
-                            main(globalEnvironment);
-                        })
-                    } else
-                        main(globalEnvironment);
+                    runGame();
                 })));
     });
     
@@ -110,13 +70,9 @@ function loadStartMenu() {
 function loadGameOverMenu() {
     $("#placeholder").html($("#gameover-menu").html());
 
-    $("#btn-tomenu").click(() => {
-        loadStartMenu();
-    });
-
-    $("#btn-retry").click(() => {
-        main(globalEnvironment);
-    });
+    $("#btn-tomenu").click(() => loadStartMenu());
+    $("#btn-retry").click(() => runGame());
+    
     $(".game-btn").mouseenter(() => playSound("sndClick"));
 }
 
@@ -125,11 +81,9 @@ function loadWonGameMenu(score: number) {
         $("#placeholder").html($("#won-menu").html());
         $("#placeholder").fadeIn("fast");
 
-        $("#btn-tomenu").click(() => {
-            loadStartMenu();
-        });
+        $("#btn-tomenu").click(() => loadStartMenu());
 
-        $("#points").text("" + score);
+        $("#points").text(score.toString());
 
         $("#btn-submit").click(() => {
             var name: string = $("#player-name").val();
@@ -151,14 +105,16 @@ function loadWonGameMenu(score: number) {
 }
 
 // INIT
-$(() => {
+$(() =>
+{
     maps = GameMaps();
     
-    if (!navigator.getUserMedia) {
-        window.alert("no mix detected");
-    } else {
-        loadStartMenu();
-    }
+    if (!navigator.getUserMedia)
+        throw "microphone input not supported on your browser";
+    else
+        navigator.getUserMedia({ video: false, audio: true }, 
+            stream => { audioAnalysis = new AudioAnalysis(stream); loadStartMenu(); }, 
+            error => { throw "failed to access microphone (" + error + ")" });
 });
 
 window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
@@ -177,36 +133,20 @@ window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
 //     return tones[tone];
 // }
 
-// CALLED WHEN READY
-function main(environment: Environment)
-{
-    var body = $("body");
-
-    runGame(environment);
-    return;
-    
-    //var canvas = $("<canvas>");
-    //canvas.appendTo(body);
-    //canvas.attr("width", );
-    
-    var table = $("<table>").appendTo(body);
-    var cells: JQuery[] = [];
-    var rowCount = environment.getInput().length;
-    for (var i = 0; i < rowCount; ++i)
-    {
-        var cell: JQuery;
-        $("<tr>")
-            .appendTo(table)
-            .append($("<td>").text(i.toString()))
-            .append(cell = $("<td>").text("-"));
-        cells.push(cell);
-    }
-}
-
-// index to frequency: x => x * 22 + 440
 var delayMS = 20;
-function runGame(environment: Environment): void
+function runGame(): void
 {
+    var gameOver = () => {
+        playSound("sndLost");
+        clearInterval(gameInterval);
+        loadGameOverMenu();
+    };
+
+    var wonGame = (score: number) => {
+        clearInterval(gameInterval);
+        loadWonGameMenu(score);
+    };
+    
     $("audio").removeClass("done");
     
     // resources
@@ -295,14 +235,16 @@ function runGame(environment: Environment): void
         var laserCenter: Vector2D = { x: worldSize.x / 2, y: 3 * worldSize.y };
         
         // audio logic
-        var frequencies = environment.getInput();
+        var frequencies = audioAnalysis.getInput();
             
         // game logic
-        if (myHealth == 0) {
+        if (myHealth <= 0) {
             gameOver();
+            return;
         }
         if (bubbles.length == 0 && bubbleQ.length == 0) {
             wonGame(score);
+            return;
         }
 
         bubbles.forEach(a => { 
@@ -387,19 +329,6 @@ function runGame(environment: Environment): void
             context.fillStyle = "rgb(255, " + (255 * health | 0) + "," + (255 * health | 0) + ")";
             var barSize = radius * health;
             context.fillRect(b.location.x - barSize, b.location.y - radius - 5, barSize * 2, 3);
-            
-            // context.lineWidth = b.life / 100;
-            // context.strokeStyle = "white";
-            // context.beginPath();
-            // context.arc(b.location.x, b.location.y, b.radius, 0, Math.PI * 2);
-            // context.closePath();
-            // context.stroke();
-            
-            // context.fillStyle = "white";
-            // context.textAlign = "center";
-            // context.textBaseline = "middle";
-            // context.font = (b.fre | 0) + "px serif";
-            // context.fillText(tones[b.note.note], b.location.x, b.location.y);
         }
         
         context.lineCap = "round";
@@ -538,15 +467,4 @@ function runGame(environment: Environment): void
         mapscores = mapscores.filter(x => x.mapname != "dummy-player");
     
     }, delayMS);
-
-    var gameOver = () => {
-        playSound("sndLost");
-        clearInterval(gameInterval);
-        loadGameOverMenu();
-    };
-
-    var wonGame = (score: number) => {
-        clearInterval(gameInterval);
-        loadWonGameMenu(score);
-    };
 }

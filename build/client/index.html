@@ -3,36 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, width=device-width">
-    <title>Sound World</title>
-    <script>
-      if (!Array.prototype.forEach) {
-        Array.prototype.forEach = Uint8Array.prototype.forEach = function(callback, thisArg) {
-          var T, k;
-      
-          if (this == null) {
-            throw new TypeError(' this is null or not defined');
-          }
-          var O = Object(this);
-          var len = O.length >>> 0;
-          if (typeof callback !== "function") {
-            throw new TypeError(callback + ' is not a function');
-          }
-          if (arguments.length > 1) {
-            T = thisArg;
-          }
-          k = 0;
-          while (k < len) {
-      
-            var kValue;
-            if (k in O) {
-              kValue = O[k];
-              callback.call(T, kValue, k, O);
-            }
-            k++;
-          }
-        };
-      }
-    </script>
+    <title>AudioWar</title>
     <script data-main="client/main.js" src='require.js'></script>
     <link rel="stylesheet" type="text/css" href="style.css">
   </head>
@@ -57,9 +28,9 @@
 
       <h1 id="lbl-heading" class="pulse2" style="text-align: center;">AudioWar</h1>
 
-      <div id="menu" style="text-align: center;">
-          <div id="menu-holder" style="color: white; margin-top: 5%;">
-            <h1 id="menu-start" style="font-size: 2em;">Master of a song below?!<br>Save the world by whistling it!</h1>
+      <div id="menu">
+          <div id="menu-holder">
+            <h1 id="menu-start">Master of a song below?!<br>Save the world by whistling it!</h1>
             <br>
             <div id="btn-starts">
             </div>
@@ -74,8 +45,8 @@
 
       <h1 class="pulse2" style="text-align: center;">Game Over</h1>
 
-      <div id="menu" style="text-align: center;">
-          <div id="menu-holder" style="color: white; margin-top: 5%;">
+      <div id="menu">
+          <div id="menu-holder">
             <h1 style="font-size: 3em;">
               <span class="game-btn" id="btn-tomenu">Back to menu</span>
               <span class="game-btn" id="btn-retry" style="margin-left: 10%;">Retry</span>
@@ -91,11 +62,11 @@
 
       <h1 class="pulse2" style="text-align: center;">Awesomeness!</h1>
 
-      <div id="menu" style="text-align: center;">
-          <div id="menu-holder" style="color: white;">
+      <div id="menu">
+          <div id="menu-holder">
             <h1 style="font-size: 3em;">You got <span id="points" style="color: #ffd700">0</span> points!</h1>
 
-            <input id="player-name" type="text" style="font-size: 4em; background-color: black; color: white; text-align: center;"></input>
+            <input id="player-name" type="text"></input>
 
             <h1 style="font-size: 3em;">
               <span class="game-btn" id="btn-tomenu">Back to menu</span>

@@ -68,8 +68,25 @@ body
 
 /* pulse animation end */
 
+#menu {
+    text-align: center;
+}
 
+#player-name {
+    font-size: 4em; 
+    background-color: black; 
+    color: white; 
+    text-align: center;   
+}
 
+#menu-start {
+    font-size: 2em;
+}
+
+#menu-holder {
+    color: white; 
+    margin-top: 5%;
+}
 
 
 /* parallax stars begin */

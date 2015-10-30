@@ -7,13 +7,30 @@ function saturate(x: number): number
     return x;
 }
 
-export class Environment
+export class AudioAnalysis
 {
+	private analyserNode: AnalyserNode;
 	private freqByteData: Uint8Array;
 	    
-    public constructor(private analyserNode: AnalyserNode)
+    public constructor(audioStream: MediaStream)
     { 
-        this.freqByteData = new Uint8Array(analyserNode.frequencyBinCount);
+        var AudioContext: AudioContextConstructor = window.AudioContext || (<any>window).webkitAudioContext;
+        var audioContext = new AudioContext();
+        
+        var inputPoint = audioContext.createGain();
+
+        var realAudioInput = audioContext.createMediaStreamSource(audioStream);
+        var audioInput = realAudioInput;
+        audioInput.connect(inputPoint);
+    
+        this.analyserNode = audioContext.createAnalyser();
+        this.analyserNode.fftSize = 2048; // FFT resolution
+        this.analyserNode.minDecibels = -90;
+        this.analyserNode.maxDecibels = -10;
+        this.analyserNode.smoothingTimeConstant = 0.85;
+        inputPoint.connect(this.analyserNode);
+            
+        this.freqByteData = new Uint8Array(this.analyserNode.frequencyBinCount);
     }
 
     public getInput(): number[]
@@ -39,7 +56,6 @@ export class Environment
                     activeIndices.push(i); 
         });
         
-       // return [0,0.5,1];
         return activeIndices.map(x => Math.pow(saturate(x / 96 * 2.2 - 0.5), 0.8));
     }
 }
