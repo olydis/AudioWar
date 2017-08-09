@@ -1,4 +1,3 @@
-/// <reference path="../decls/jquery.d.ts" />
 /// <reference path="../shared/Vector2D.ts" />
 
 export class SmartCanvas

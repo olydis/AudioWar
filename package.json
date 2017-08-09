@@ -1,5 +1,5 @@
 {
-  "name": "SoundInput",
+  "name": "AudioWar",
   "version": "0.1.0",
   "private": true,
   "main": "build/server/server/main.js",
@@ -8,12 +8,16 @@
     "install": "tsc @tscServer.txt && tsc @tscClient.txt"
   },
   "dependencies": {
+    "@types/body-parser": "^1.16.4",
+    "@types/express": "^4.0.36",
+    "@types/jquery": "^3.2.11",
+    "@types/node": "^8.0.20",
+    "body-parser": "*",
     "express": "~4.9.7",
     "express-session": "^1.11.3",
-    "mongoose": "4.1.3",
-    "socket.io": "^1.1.0",
-    "jquery": "1.11.2",
     "express-socket.io-session": "1.3.1",
-    "body-parser": "*"
+    "jquery": "1.11.2",
+    "mongoose": "4.1.3",
+    "socket.io": "^1.1.0"
   }
 }

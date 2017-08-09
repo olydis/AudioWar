@@ -1,9 +1,4 @@
-/// <reference path="../decls/jquery.d.ts" />
-/// <reference path="../decls/require.d.ts" />
-/// <reference path="../decls/socket.io-client.d.ts" />
 /// <reference path="../shared/include.ts" />
-/// <reference path="../decls/webrtc/MediaStream.d.ts" />
-/// <reference path="../decls/webaudioapi/waa.d.ts" />
 /// <reference path="./GameMap.ts" />
 
 
@@ -33,11 +28,6 @@ document.body.requestFullscreen =
     document.body.webkitRequestFullscreen || 
     (<any>document.body).mozRequestFullScreen || 
     (<any>document.body).msRequestFullscreen;
-navigator.getUserMedia = 
-    navigator.getUserMedia || 
-    navigator.webkitGetUserMedia || 
-    navigator.mozGetUserMedia || 
-    navigator.msGetUserMedia;
 
 var audioAnalysis: AudioAnalysis;
 var maps: GameMap[];
@@ -86,7 +76,7 @@ function loadWonGameMenu(score: number) {
         $("#points").text(score.toString());
 
         $("#btn-submit").click(() => {
-            var name: string = $("#player-name").val();
+            var name: string = "" + $("#player-name").val();
 
             if(!name) {
                 $("#player-name").css("background-color", "rgba(200,0,0,0.4)");
@@ -109,12 +99,17 @@ $(() =>
 {
     maps = GameMaps();
     
-    if (!navigator.getUserMedia)
+    if (!navigator.mediaDevices) {
         throw "microphone input not supported on your browser";
-    else
-        navigator.getUserMedia({ video: false, audio: true }, 
-            stream => { audioAnalysis = new AudioAnalysis(stream); loadStartMenu(); }, 
-            error => { throw "failed to access microphone (" + error + ")" });
+    } else {
+        // Quick fix. Real solution: https://github.com/Microsoft/TypeScript/issues/13947
+        (navigator.mediaDevices.getUserMedia as any)({ video: false, audio: true }).then((stream: MediaStream) => {
+            audioAnalysis = new AudioAnalysis(stream); loadStartMenu();
+        }).catch((error) => {
+            alert("Please enable microphone access");
+            throw "failed to access microphone (" + error + ")";
+        });
+    }
 });
 
 window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {

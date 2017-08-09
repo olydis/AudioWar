@@ -1,6 +1,3 @@
-/// <reference path="../decls/node.d.ts" />
-/// <reference path="../decls/express.d.ts" />
-/// <reference path="../decls/body-parser.d.ts" />
 /// <reference path="../shared/include.ts" />
 
 // config

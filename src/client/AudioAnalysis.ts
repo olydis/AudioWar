@@ -14,7 +14,7 @@ export class AudioAnalysis
 	    
     public constructor(audioStream: MediaStream)
     { 
-        var AudioContext: AudioContextConstructor = window.AudioContext || (<any>window).webkitAudioContext;
+        var AudioContext: any = (window as any).AudioContext || (window as any).webkitAudioContext;
         var audioContext = new AudioContext();
         
         var inputPoint = audioContext.createGain();
