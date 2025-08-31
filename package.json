@@ -2,14 +2,18 @@
   "name": "AudioWar",
   "version": "0.1.0",
   "private": true,
-  "main": "build/server/server/main.js",
+  "main": "build/server/bundle.js",
   "scripts": {
-    "start": "node build/server/server/main.js",
+    "start": "node build/server/bundle.js",
     "build": "tsc",
+    "bundle": "npm run bundle:server && npm run bundle:client",
+    "bundle:server": "esbuild src/server/main.ts --bundle --platform=node --outfile=build/server/bundle.js",
+    "bundle:client": "esbuild src/client/main.ts --bundle --platform=browser --outfile=build/client/bundle.js --format=iife"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/jquery": "^3.5.33",
+    "esbuild": "^0.25.9",
     "typescript": "^5.9.2"
   },
   "dependencies": {
