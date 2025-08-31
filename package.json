@@ -6,6 +6,10 @@
   "scripts": {
     "start": "node build/server/server/main.js",
     "install": "tsc @tscServer.txt && tsc @tscClient.txt"
+    "build": "tsc",
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
   },
   "dependencies": {
     "@types/body-parser": "^1.16.4",

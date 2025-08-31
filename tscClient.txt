@@ -1,5 +1,0 @@
--target ES5
---removeComments
---module amd
---outDir build/client
-src/client/main.ts
