@@ -1,5 +1,3 @@
-/// <reference path="../shared/include.ts" />
-
 function saturate(x: number): number
 {
     if (x < 0) return 0;
@@ -10,7 +8,7 @@ function saturate(x: number): number
 export class AudioAnalysis
 {
 	private analyserNode: AnalyserNode;
-	private freqByteData: Uint8Array;
+	private freqByteData: Uint8Array<ArrayBuffer>;
 	    
     public constructor(audioStream: MediaStream)
     { 

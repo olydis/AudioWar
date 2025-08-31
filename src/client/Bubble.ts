@@ -1,7 +1,6 @@
-/// <reference path="../shared/include.ts" />
-/// <reference path="BubbleSettings.ts" />
+import type { Vector2D } from "../shared/Vector2D";
 
-class Bubble
+export class Bubble
 {
     // dynamic
     public location: Vector2D;
@@ -46,5 +45,3 @@ class Bubble
         this.life -= damage;
     }
 }
-
-export = Bubble;

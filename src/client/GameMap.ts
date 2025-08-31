@@ -1,5 +1,3 @@
-/// <reference path="BubbleSettings.ts" />
-
 interface GameMap 
 {
     name: string;

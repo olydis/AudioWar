@@ -1,9 +1,10 @@
-/// <reference path="../shared/Vector2D.ts" />
+import type { Vector2D } from "../shared/Vector2D";
+import $ from "jquery";
 
 export class SmartCanvas
 {
     private _currentDimensions: Vector2D = { x: 0, y: 0 };
-    private _context: CanvasRenderingContext2D = null;
+    private _context: CanvasRenderingContext2D | null = null;
     public canvas: JQuery;
     private canvasNative: HTMLCanvasElement;
     

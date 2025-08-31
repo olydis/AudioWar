@@ -1,5 +1,3 @@
-/// <reference path="GameMap.ts" />
-
 var tones = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "+C"];
 
 // HELPERS
@@ -198,7 +196,7 @@ function mapGodfather(): GameMap
 	return { name: "Godfather", queue: currentQ };
 }
 
-function getMaps(): GameMap[]
+export function getMaps(): GameMap[]
 {
     var maps: GameMap[] = [];
 	maps.push(mapCalibrate());
@@ -207,5 +205,3 @@ function getMaps(): GameMap[]
 	maps.push(mapGodfather());
 	return maps;
 }
-
-export = getMaps;
