@@ -19,8 +19,8 @@ console.log("");
 var app = express();
 var server = require("http").createServer(app);
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 var allscores: Score[] = [];
 
