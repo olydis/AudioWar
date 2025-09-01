@@ -1,39 +1,37 @@
 import type { Vector2D } from "../shared/Vector2D";
-import $ from "jquery";
 
 export class SmartCanvas {
     private _currentDimensions: Vector2D = { x: 0, y: 0 };
     private _context: CanvasRenderingContext2D | null = null;
-    public canvas: JQuery;
-    private canvasNative: HTMLCanvasElement;
+    private canvas: HTMLCanvasElement;
 
-    public constructor(container: JQuery) {
-        this.canvasNative = document.createElement("canvas");
-        this.canvas = $(this.canvasNative).appendTo(container);
-        this.canvas.css("margin", "0");
-        this.canvas.css("padding", "0");
-        this.canvas.css("position", "fixed");
-        this.canvas.css("top", "0px");
-        this.canvas.css("left", "0px");
+    public constructor(container: HTMLElement) {
+        this.canvas = document.createElement("canvas");
+        container.appendChild(this.canvas);
+        this.canvas.style.margin = "0";
+        this.canvas.style.padding = "0";
+        this.canvas.style.position = "fixed";
+        this.canvas.style.top = "0px";
+        this.canvas.style.left = "0px";
     }
 
-    public asJQuery(): JQuery {
+    public get(): HTMLCanvasElement {
         return this.canvas;
     }
 
     public setDimensions(dimensions: Vector2D) {
         this._currentDimensions = dimensions;
-        this.canvas.width(dimensions.x);
-        this.canvas.height(dimensions.y);
-        this.canvas.attr("width", dimensions.x);
-        this.canvas.attr("height", dimensions.y);
-        this.canvas.css("z-index", "0");
+        this.canvas.width = dimensions.x;
+        this.canvas.height = dimensions.y;
+        // this.canvas.setAttribute("width", dimensions.x.toString());
+        // this.canvas.setAttribute("height", dimensions.y.toString());
+        this.canvas.style.zIndex = "0";
         this._context = null;
     }
 
     public get context(): CanvasRenderingContext2D {
         if (this._context == null)
-            this._context = <CanvasRenderingContext2D>this.canvasNative.getContext("2d");
+            this._context = this.canvas.getContext("2d")!;
         return this._context;
     }
 

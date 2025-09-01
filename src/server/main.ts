@@ -14,13 +14,13 @@ app.use(express.urlencoded({ extended: true }));
 
 const allscores: Score[] = [];
 
-app.get("/submit-score", (req, res) => {
+app.post("/submit-score", (req, res) => {
     console.log("Received score");
-    console.log(req.query);
+    console.log(req.body);
     allscores.push({
-        mapname: req.query.mapname as string,
-        playername: req.query.playername as string,
-        score: +(req.query.score as string)
+        mapname: req.body.mapname as string,
+        playername: req.body.playername as string,
+        score: req.body.score as number
     });
     res.end();
 });

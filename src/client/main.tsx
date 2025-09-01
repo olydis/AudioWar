@@ -1,89 +1,100 @@
 import type { Vector2D } from "../shared/Vector2D";
 import type { Score } from "../shared/Score";
+import { dom } from "./tsx/dom";
 
 const tones = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "+C"];
-
-import $ from "jquery";
 
 import { AudioAnalysis } from "./AudioAnalysis";
 import { Bubble } from "./Bubble";
 import { getMaps } from "./GameMaps";
 import { SmartCanvas } from "./SmartCanvas";
+import { request } from "express";
 
 function playSound(id: string, once: boolean = false): void {
-    const audio = $("#" + id);
-    if (audio.hasClass("done"))
+    const audio = document.getElementById(id) as HTMLAudioElement;
+    if (audio.classList.contains("done"))
         return;
-    (<HTMLAudioElement>audio[0]).play();
+    audio.play();
     if (once)
-        audio.addClass("done");
+        audio.classList.add("done");
 }
 
 let audioAnalysis: AudioAnalysis;
 let maps: GameMap[];
 let selectedMap: GameMap;
 
+const placeholder = () => document.getElementById("placeholder")!;
+
 function loadStartMenu() {
-    $("#placeholder").html($("#start-menu").html());
+    placeholder().innerHTML = document.getElementById("start-menu")!.innerHTML;
 
-    $("#lbl-heading").click(() => document.body.requestFullscreen());
+    document.getElementById("lbl-heading")!.onclick = () => document.body.requestFullscreen();
 
-    const startButtons = $("#btn-starts");
+    const startButtons = document.getElementById("btn-starts")!;
     maps.forEach((map, i) => {
-        startButtons.append($("<h1>").css("font-size", "2em").append(
-            $("<span>")
-                .addClass("game-btn")
-                .attr("id", "btn-start-" + map.name)
-                .text((i + 1) + ". " + map.name)
-                .click(() => {
-                    selectedMap = map;
-
-                    runGame();
-                })));
+        startButtons.appendChild(
+            <h1 style={{ fontSize: "2em" }}>
+                <span
+                    className="game-btn"
+                    id={"btn-start-" + map.name}
+                    onmouseenter={() => playSound("sndClick")}
+                    onclick={() => {
+                        selectedMap = map;
+                        runGame();
+                    }}
+                >
+                    {(i + 1) + ". " + map.name}
+                </span>
+            </h1>);
     });
-
-    $(".game-btn").mouseenter(() => playSound("sndClick"));
 }
 
 function loadGameOverMenu() {
-    $("#placeholder").html($("#gameover-menu").html());
+    placeholder().innerHTML = document.getElementById("gameover-menu")!.innerHTML;
 
-    $("#btn-tomenu").click(() => loadStartMenu());
-    $("#btn-retry").click(() => runGame());
+    document.getElementById("btn-tomenu")!.onclick = () => loadStartMenu();
+    document.getElementById("btn-retry")!.onclick = () => runGame();
 
-    $(".game-btn").mouseenter(() => playSound("sndClick"));
+    [...document.getElementsByClassName('game-btn')].forEach(
+        btn => btn.addEventListener('mouseenter', () => playSound("sndClick")));
 }
 
 function loadWonGameMenu(score: number) {
-    $("#placeholder").fadeOut(1000, () => {
-        $("#placeholder").html($("#won-menu").html());
-        $("#placeholder").fadeIn("fast");
+    placeholder().innerHTML = document.getElementById("won-menu")!.innerHTML;
 
-        $("#btn-tomenu").click(() => loadStartMenu());
+    document.getElementById("btn-tomenu")!.onclick = () => loadStartMenu();
 
-        $("#points").text(score.toString());
+    document.getElementById("points")!.textContent = score.toString();
 
-        $("#btn-submit").click(() => {
-            const name: string = "" + $("#player-name").val();
+    document.getElementById("btn-submit")!.onclick = () => {
+        const name: string = (document.getElementById("player-name") as HTMLInputElement).value;
 
-            if (!name) {
-                $("#player-name").css("background-color", "rgba(200,0,0,0.4)");
-                setInterval(() => { $("#player-name").css("background-color", "black"); }, 200);
-                return;
-            }
+        if (!name) {
+            document.getElementById("player-name")!.style.backgroundColor = "rgba(200,0,0,0.4)";
+            setInterval(() => { document.getElementById("player-name")!.style.backgroundColor = "black"; }, 200);
+            return;
+        }
 
-            $.get("/submit-score", { mapname: selectedMap.name, playername: name, score: score },
-                (result, status) => {
-                    loadStartMenu();
-                }
-            );
-        });
-    });
-    $(".game-btn").mouseenter(() => playSound("sndClick"));
+        fetch("/submit-score", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                mapname: selectedMap.name,
+                playername: name,
+                score: score
+            })
+        })
+            .then(_ => loadStartMenu());
+    };
+
+    [...document.getElementsByClassName('game-btn')].forEach(
+        btn => btn.addEventListener('mouseenter', () => playSound("sndClick")));
 }
 
 // INIT
-$(() => {
+document.addEventListener("DOMContentLoaded", () => {
     maps = getMaps();
 
     if (!navigator.mediaDevices) {
@@ -129,36 +140,43 @@ function runGame(): void {
         loadWonGameMenu(score);
     };
 
-    $("audio").removeClass("done");
+    [...document.getElementsByTagName("audio")].forEach(audio => {
+        audio.classList.remove("done");
+    });
 
     // resources
-    const imgPlanet = <HTMLImageElement>document.getElementById("imgPlanet");
-    const imgAsteroid1 = <HTMLImageElement>document.getElementById("imgAsteroid1");
-    const imgAsteroid2 = <HTMLImageElement>document.getElementById("imgAsteroid2");
+    const imgPlanet = document.getElementById("imgPlanet") as HTMLImageElement;
+    const imgAsteroid1 = document.getElementById("imgAsteroid1") as HTMLImageElement;
+    const imgAsteroid2 = document.getElementById("imgAsteroid2") as HTMLImageElement;
 
     const worldSize = { x: 1000, y: -1 };
 
-    const wnd: JQuery<Window> = $(window);
-    const body: JQuery = $("#placeholder");
-    body.html("");
+    const body = placeholder();
+    body.innerHTML = "";
     //body.append("<div id='stars'></div> <div id='stars2'></div> <div id='stars3'></div>");
-    body.append($("<h1>").text("Exit game")
-        .addClass("game-btn")
-        .css("color", "white")
-        .css("position", "fixed")
-        .attr("id", "btn-tomenu")
-        .css("z-index", "5")
-        .css("margin-left", "1%"));
-    $("#btn-tomenu").click(() => {
-        clearInterval(gameInterval);
-        loadStartMenu();
-    });
+    body.append(
+        <h1 id="btn-tomenu"
+            className="game-btn"
+            style={{
+                color: "white",
+                position: "fixed",
+                zIndex: "5",
+                marginLeft: "1%"
+            }}
+            onclick={() => {
+                clearInterval(gameInterval);
+                loadStartMenu();
+            }}
+        >
+            "Exit game"
+        </h1>
+    );
 
     let mapscores: Score[] = [];
-    $.get("highscore", { mapname: selectedMap.name }, (res, status) => {
-        res = JSON.parse(res);
-        mapscores = res;
-    });
+    fetch(`highscore?mapname=${encodeURIComponent(selectedMap.name)}`, { method: "GET" })
+        .then(res => res.json()).then((res: Score[]) => {
+            mapscores = res;
+        });
 
     let canvasSize: Vector2D = { x: 0, y: 0 };
 
@@ -200,8 +218,8 @@ function runGame(): void {
         lastGameTime = gameTime;
 
         // resize handling
-        const width = wnd.width() as number;
-        const height = wnd.height() as number;
+        const width = window.innerWidth;
+        const height = window.innerHeight;
         const newCanvasSize: Vector2D = { x: width, y: height };
         if (canvasSize.x != newCanvasSize.x ||
             canvasSize.y != newCanvasSize.y) {

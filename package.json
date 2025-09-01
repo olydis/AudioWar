@@ -8,16 +8,14 @@
     "build": "tsc",
     "bundle": "npm run bundle:server && npm run bundle:client",
     "bundle:server": "esbuild src/server/main.ts --bundle --platform=node --outfile=build/server/bundle.js",
-    "bundle:client": "esbuild src/client/main.ts --bundle --platform=browser --outfile=build/client/bundle.js --format=iife"
+    "bundle:client": "esbuild src/client/main.tsx --bundle --platform=browser --outfile=build/client/bundle.js --format=iife"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
-    "@types/jquery": "^3.5.33",
     "esbuild": "^0.25.9",
     "typescript": "^5.9.2"
   },
   "dependencies": {
-    "express": "^5.1.0",
-    "jquery": "^3.7.1"
+    "express": "^5.1.0"
   }
 }
