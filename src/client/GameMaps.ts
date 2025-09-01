@@ -1,38 +1,34 @@
-var tones = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "+C"];
+const tones = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "+C"];
 
 // HELPERS
-var currentTime = 0;
-var currentQ: { settings: BubbleSettings; timeStamp: number }[];
+let currentTime = 0;
+let currentQ: { settings: BubbleSettings; timeStamp: number }[];
 
-function reset()
-{
+function reset() {
 	currentTime = 0;
 	currentQ = [];
 }
-function addTone(symbol: string, duration: number = 1, progress: boolean = true)
-{
+function addTone(symbol: string, duration: number = 1, progress: boolean = true) {
 	duration *= 300;
 	currentQ.push({ settings: { frequency: tones.indexOf(symbol) / 12, life: duration }, timeStamp: currentTime });
 	if (progress)
 		currentTime += duration;
 }
 
-function mapCalibrate(): GameMap
-{
+function mapCalibrate(): GameMap {
 	reset();
-	
+
 	addTone("C", 8, false);
 	addTone("+C", 8);
 	currentTime += 5000;
 	tones.forEach(t => addTone(t));
-	
+
 	return { name: "Calibrate", queue: currentQ };
 }
 
-function mapEntchen(): GameMap
-{
+function mapEntchen(): GameMap {
 	reset();
-		
+
 	addTone("C");
 	addTone("D");
 	addTone("E");
@@ -60,14 +56,13 @@ function mapEntchen(): GameMap
 	addTone("D");
 	addTone("D");
 	addTone("C", 4);
-	
+
 	return { name: "Entchen", queue: currentQ };
 }
 
-function mapMario(): GameMap
-{
+function mapMario(): GameMap {
 	reset();
-	
+
 	addTone("A", 0.5);
 	addTone("A", 1);
 	addTone("A", 1);
@@ -75,9 +70,8 @@ function mapMario(): GameMap
 	addTone("A", 1);
 	addTone("+C", 2);
 	addTone("C", 2);
-		
-	for (var i = 0; i < 2; i++)
-	{
+
+	for (let i = 0; i < 2; i++) {
 		addTone("F", 1.5);
 		addTone("C", 1.5);
 		addTone("C", 1.5); //-A
@@ -96,7 +90,7 @@ function mapMario(): GameMap
 		addTone("G", 0.5);
 		addTone("E", 1.5);
 	}
-	
+
 	addTone("+C", 0.5);
 	addTone("B", 0.5);
 	addTone("A#", 0.5);
@@ -108,7 +102,7 @@ function mapMario(): GameMap
 	addTone("D", 0.5);
 	addTone("F", 0.5);
 	addTone("G", 1);
-	
+
 	addTone("+C", 0.5);
 	addTone("B", 0.5);
 	addTone("A#", 0.5);
@@ -117,7 +111,7 @@ function mapMario(): GameMap
 	addTone("+C", 1);
 	addTone("+C", 0.5);
 	addTone("+C", 1);
-	
+
 	addTone("+C", 0.5);
 	addTone("B", 0.5);
 	addTone("A#", 0.5);
@@ -129,12 +123,12 @@ function mapMario(): GameMap
 	addTone("D", 0.5);
 	addTone("F", 0.5);
 	addTone("G", 1.5);
-	
+
 	addTone("G#", 1.5);
 	addTone("G", 1.5);
 	addTone("F", 2);
-	
-	
+
+
 	addTone("F", 0.5);
 	addTone("F", 1);
 	addTone("F", 1);
@@ -144,14 +138,14 @@ function mapMario(): GameMap
 	addTone("F", 1);
 	addTone("D", 0.5);
 	addTone("C", 2);
-	
+
 	addTone("F", 0.5);
 	addTone("F", 1);
 	addTone("F", 1);
 	addTone("F", 0.5);
 	addTone("G", 1);
 	addTone("A", 4);
-	
+
 	addTone("F", 0.5);
 	addTone("F", 1);
 	addTone("F", 1);
@@ -161,7 +155,7 @@ function mapMario(): GameMap
 	addTone("F", 1);
 	addTone("D", 0.5);
 	addTone("C", 2);
-	
+
 	addTone("A", 0.5);
 	addTone("A", 1);
 	addTone("A", 1);
@@ -169,17 +163,16 @@ function mapMario(): GameMap
 	addTone("A", 1);
 	addTone("+C", 2);
 	addTone("C", 2);
-	
+
 	addTone("A", 8);
-	
-	
+
+
 	return { name: "Mario", queue: currentQ };
 }
 
-function mapGodfather(): GameMap
-{
+function mapGodfather(): GameMap {
 	reset();
-		
+
 	addTone("C");
 	addTone("F");
 	addTone("G#");
@@ -192,13 +185,12 @@ function mapGodfather(): GameMap
 	addTone("C#");
 	addTone("E");
 	addTone("C", 4);
-	
+
 	return { name: "Godfather", queue: currentQ };
 }
 
-export function getMaps(): GameMap[]
-{
-    var maps: GameMap[] = [];
+export function getMaps(): GameMap[] {
+	const maps: GameMap[] = [];
 	maps.push(mapCalibrate());
 	maps.push(mapEntchen());
 	maps.push(mapMario());
